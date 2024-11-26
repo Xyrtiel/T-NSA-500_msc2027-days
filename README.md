@@ -120,59 +120,98 @@ sda      8:0    0   20G  0 disk
 
 La machine est prête à être utilisée. 
 
-# Étape 3 : Configuration de l'utilisateur marvin
-sudo adduser --uid 4242 --home /home/marvin --gecos "Android Paranoid" marvin
-echo -e "toto42sh\ntoto42sh" | sudo passwd marvin
+# Tâche 3 : Mise en place des utilisateurs
 
-# Étape 4 : Création du groupe H2G2 et utilisateur zaphod
-sudo groupadd --gid 42400 H2G2
+# Créer le groupe H2G2 avec GID 42400
+sudo groupadd -g 42400 H2G2
+
+# Ajouter l'utilisateur marvin au groupe H2G2
 sudo usermod -aG H2G2 marvin
-sudo adduser --uid 4200 --gid 42400 --home /home/zaphod --gecos "Zaphod Beeblebrox" zaphod
-echo -e "ZappyBibicy\nZappyBibicy" | sudo passwd zaphod
 
-# Étape 5 : Création du répertoire HeartOfGold
+# Créer l'utilisateur zaphod avec les caractéristiques spécifiées
+sudo useradd -m -d /home/zaphod -c "Zaphod Beeblebrox" -u 4200 -g 42400 zaphod
+
+# Définir le mot de passe de l'utilisateur zaphod
+echo "zaphod:ZappyBibicy" | sudo chpasswd
+
+# Créer le dossier /home/HeartOfGold et le lier au groupe H2G2
 sudo mkdir /home/HeartOfGold
 sudo chown :H2G2 /home/HeartOfGold
 sudo chmod 770 /home/HeartOfGold
 
-# Étape 6 : Configuration du SSH
-sudo apt update && sudo apt install -y openssh-server
-sudo sed -i 's/^#Port 22/Port 4242/' /etc/ssh/sshd_config
-sudo sed -i 's/^#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config
-echo "PasswordAuthentication no" | sudo tee -a /etc/ssh/sshd_config
-echo "DenyUsers zaphod" | sudo tee -a /etc/ssh/sshd_config
-sudo systemctl restart sshd
+# Task 04 - SSH Configuration
 
-# Étape 7 : Installation et configuration de Fail2Ban
+# Installer le service SSH
+sudo apt update
+sudo apt install -y openssh-server
+
+# Modifier la configuration du fichier /etc/ssh/sshd_config
+sudo sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+sudo sed -i 's/^#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config
+sudo sed -i 's/^#Port 22/Port 4242/' /etc/ssh/sshd_config
+
+# Redémarrer le service SSH pour appliquer les changements
+sudo systemctl restart ssh
+
+# Task 05 - Restrict SSH for zaphod
+
+# Ajouter une règle pour interdire l'accès SSH à l'utilisateur zaphod
+echo "DenyUsers zaphod" | sudo tee -a /etc/ssh/sshd_config
+
+# Redémarrer le service SSH pour appliquer les changements
+sudo systemctl restart ssh
+
+# Task 06 - Install and Configure Fail2Ban
+
+# Installer Fail2Ban
 sudo apt install -y fail2ban
+
+# Configurer Fail2Ban en modifiant /etc/fail2ban/jail.local
 sudo tee /etc/fail2ban/jail.local > /dev/null <<EOF
 [sshd]
 enabled = true
 port = 4242
 maxretry = 3
-findtime = 5m
 bantime = 30m
+findtime = 5m
 EOF
+
+# Redémarrer Fail2Ban pour appliquer les changements
 sudo systemctl restart fail2ban
 
-# Étape 8 : Configuration du firewall avec iptables
+# Task 07 - Configure iptables
+
+# Créer les règles iptables dans /etc/iptables/rules.v4
 sudo tee /etc/iptables/rules.v4 > /dev/null <<EOF
 *filter
-:INPUT DROP [0:0]
-:FORWARD DROP [0:0]
-:OUTPUT ACCEPT [0:0]
 
-# Autoriser SSH
+# Accepter les connexions SSH (port 4242)
 -A INPUT -p tcp --dport 4242 -j ACCEPT
+-A OUTPUT -p tcp --dport 4242 -j ACCEPT
 
-# Autoriser HTTP/HTTPS/DNS sortants
+# Autoriser les connexions HTTP/HTTPS sortantes
 -A OUTPUT -p tcp --dport 80 -j ACCEPT
 -A OUTPUT -p tcp --dport 443 -j ACCEPT
+
+# Autoriser les requêtes DNS sortantes
 -A OUTPUT -p udp --dport 53 -j ACCEPT
+
+# Bloquer toutes les autres connexions
+-A INPUT -j DROP
+-A OUTPUT -j DROP
 
 COMMIT
 EOF
+
+# Charger les règles iptables
 sudo iptables-restore < /etc/iptables/rules.v4
+
+# Installer le paquet pour rendre les règles iptables persistantes au démarrage
+sudo apt install -y iptables-persistent
+
+# Sauvegarder les règles pour qu'elles soient appliquées au reboot
+sudo netfilter-persistent save
+sudo netfilter-persistent reload
 
 
 # JOUR 2 : T-NSA-DAY02_Tasks
