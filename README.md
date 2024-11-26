@@ -216,6 +216,202 @@ sudo netfilter-persistent reload
 
 # JOUR 2 : T-NSA-DAY02_Tasks
 
+Tâche 1 : Même VM mis à part qu'il ne faut pas sélectionner "Graphical Install"
+
+## Task 02 - Network Name
+
+1. **Change the name of the Gateway machine** to `vm-gateway`:
+    ```bash
+    sudo hostnamectl set-hostname vm-gateway
+    ```
+
+2. **Check that the hostname has been set correctly**:
+    ```bash
+    hostname
+    ```
+
+---
+
+## Task 03 - Packages Installation
+
+1. **Install the following packages** on `vm-gateway`:
+    - `tcpdump`
+    - `isc-dhcp-server`
+    - `bind9`
+    - `nmap`
+    - `netstat`
+
+    To install these packages, run the following:
+    ```bash
+    sudo apt update
+    sudo apt install tcpdump isc-dhcp-server bind9 nmap net-tools -y
+    ```
+
+---
+
+## Task 04 - Configure DHCP
+
+1. **Configure ISC DHCP Server** on `vm-gateway`:
+    - **Network:** `192.168.42.0/24`
+    - **Netmask:** `255.255.255.0`
+    - **Private Interface IP:** `192.168.42.254` (not in DHCP mode)
+    - **DHCP Range:** `192.168.42.100-192.168.42.150` (50 hosts)
+
+    Open the DHCP configuration file:
+    ```bash
+    sudo nano /etc/dhcp/dhcpd.conf
+    ```
+
+    Add or modify the following lines:
+    ```bash
+    subnet 192.168.42.0 netmask 255.255.255.0 {
+        range 192.168.42.100 192.168.42.150;
+        option routers 192.168.42.254;
+        option domain-name-servers 192.168.42.254;
+        option domain-name "epi42.lan";
+    }
+    ```
+
+2. **Set static IP for the private interface** (`eth1` in this example):
+    ```bash
+    sudo nano /etc/network/interfaces
+    ```
+
+    Add the following configuration:
+    ```bash
+    iface eth1 inet static
+        address 192.168.42.254
+        netmask 255.255.255.0
+    ```
+
+3. **Restart the DHCP service** to apply the configuration:
+    ```bash
+    sudo systemctl restart isc-dhcp-server
+    ```
+
+4. **Test DHCP on the client machine** (`vm-client`) to make sure it receives an IP in the specified range:
+    - Check the IP address with:
+    ```bash
+    ip a
+    ```
+
+---
+
+## Task 05 - Router Configuration
+
+1. **Configure the router on `vm-gateway` using iptables**:
+    - **Bridge interface** should be set in DHCP mode.
+    - **Private network interface** should be on the same network as `vm-client`.
+
+2. **Enable IP forwarding** by editing `/etc/sysctl.conf`:
+    ```bash
+    sudo nano /etc/sysctl.conf
+    ```
+
+    Uncomment or add the line:
+    ```bash
+    net.ipv4.ip_forward=1
+    ```
+
+    Apply the change:
+    ```bash
+    sudo sysctl -p
+    ```
+
+3. **Set iptables rules** in `/etc/iptables/rules.v4` to allow the following:
+    - Allow all **output traffic** from the private network.
+    - Allow **DHCP** traffic to pass from `vm-client`.
+
+    Edit the iptables file:
+    ```bash
+    sudo nano /etc/iptables/rules.v4
+    ```
+
+    Add the following rules:
+    ```bash
+    *filter
+    # Allow DHCP
+    -A INPUT -p udp --dport 67 -j ACCEPT
+    -A OUTPUT -p udp --dport 67 -j ACCEPT
+    
+    # Allow all output from the private network
+    -A INPUT -s 192.168.42.0/24 -j ACCEPT
+    -A OUTPUT -d 192.168.42.0/24 -j ACCEPT
+    
+    # Block all other traffic
+    -A INPUT -j DROP
+    -A OUTPUT -j DROP
+    COMMIT
+    ```
+
+4. **Save and apply the iptables rules**:
+    ```bash
+    sudo iptables-save > /etc/iptables/rules.v4
+    ```
+
+---
+
+## Task 06 - DNS Configuration
+
+1. **Configure BIND9 DNS** on `vm-gateway`:
+
+    - Open the DNS configuration file for editing:
+    ```bash
+    sudo nano /etc/bind/named.conf.local
+    ```
+
+    Add the following zone configuration for the domain `epi42.lan`:
+    ```bash
+    zone "epi42.lan" {
+        type master;
+        file "/etc/bind/db.epi42.lan";
+    };
+    ```
+
+2. **Create the DNS zone file**:
+    ```bash
+    sudo nano /etc/bind/db.epi42.lan
+    ```
+
+    Add the following records:
+    ```bash
+    $TTL    604800
+    @       IN      SOA     gateway.epi42.lan. root.gateway.epi42.lan. (
+                          2024010101 ; Serial
+                          604800     ; Refresh
+                          86400      ; Retry
+                          2419200    ; Expire
+                          604800 )   ; Minimum TTL
+    ;
+    @       IN      NS      gateway.epi42.lan.
+    gateway IN      A       192.168.42.254
+    dhcp    IN      CNAME   gateway.epi42.lan.
+    ```
+
+3. **Check BIND9 configuration**:
+    ```bash
+    sudo named-checkconf
+    sudo named-checkzone epi42.lan /etc/bind/db.epi42.lan
+    ```
+
+4. **Restart BIND9 to apply changes**:
+    ```bash
+    sudo systemctl restart bind9
+    ```
+
+5. **Test the DNS resolution** from `vm-client`:
+    ```bash
+    nslookup gateway.epi42.lan
+    nslookup dhcp.epi42.lan
+    ```
+
+---
+
+## Conclusion
+
+Tu as maintenant configuré avec succès un **serveur DHCP**, un **routeur** via `iptables`, et un **serveur DNS** avec BIND9 pour les machines dans le réseau privé. Le client (`vm-client`) peut obtenir une adresse IP via DHCP et résoudre les noms via DNS.
+
+---
 
 
 
