@@ -69,6 +69,10 @@ Vous devez configurer les partitions comme suit :
 
 ---
 
+[📄 Documentation PDF](T-NSA_Image01-Installation.pdf)
+
+---
+
 # Etape 2 : Mise en place des partitions
 
 #### **Étapes pour chaque partition**
