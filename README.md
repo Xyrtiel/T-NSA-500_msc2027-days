@@ -69,7 +69,7 @@ Vous devez configurer les partitions comme suit :
 
 ---
 
-[📄 Documentation PDF](T-NSA_Image01-Installation.pdf)
+[📄 Configuration réalisée sur la VM étape par étape](T-NSA_Image01-Installation.pdf)
 
 ---
 
