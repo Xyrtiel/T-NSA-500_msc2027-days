@@ -1,4 +1,4 @@
-# ### JOUR 1 : T-NSA-DAY01_Tasks ###
+## JOUR 1 : T-NSA-DAY01_Tasks
 # 💻 Installation de Debian 12 "Bookworm" avec partitions manuelles
 
 Ce guide détaille l'installation de Debian sans interface graphique avec des partitions manuelles, conformément aux spécifications demandées pour un projet DevOps ou tout autre contexte éducatif.
