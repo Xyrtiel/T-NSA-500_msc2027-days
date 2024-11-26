@@ -175,6 +175,9 @@ EOF
 sudo iptables-restore < /etc/iptables/rules.v4
 
 
+# JOUR 2 : T-NSA-DAY02_Tasks
+
+
 
 
 
