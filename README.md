@@ -410,9 +410,9 @@ Tâche 1 : Même VM mis à part qu'il ne faut pas sélectionner "Graphical Insta
 
 ---
 
-## Conclusion
+## Aide avec images pour bonne configuration de la VM
 
-Tu as maintenant configuré avec succès un **serveur DHCP**, un **routeur** via `iptables`, et un **serveur DNS** avec BIND9 pour les machines dans le réseau privé. Le client (`vm-client`) peut obtenir une adresse IP via DHCP et résoudre les noms via DNS.
+[📄 Configuration réalisée sur la VM étape par étape](T-NSA_Image02-Installation.pdf)
 
 ---
 
