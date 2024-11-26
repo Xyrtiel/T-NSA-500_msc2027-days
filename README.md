@@ -264,11 +264,14 @@ Tâche 1 : Même VM mis à part qu'il ne faut pas sélectionner "Graphical Insta
 
     Add or modify the following lines:
     ```bash
+    # Global configuration
+    authoritative;
+      
     subnet 192.168.42.0 netmask 255.255.255.0 {
-        range 192.168.42.100 192.168.42.150;
-        option routers 192.168.42.254;
-        option domain-name-servers 192.168.42.254;
-        option domain-name "epi42.lan";
+    range 192.168.42.100 192.168.42.150;  
+    option routers 192.168.42.254;        
+    option domain-name-servers 8.8.8.8, 8.8.4.4; 
+    option domain-name "epi42.lan";       
     }
     ```
 
