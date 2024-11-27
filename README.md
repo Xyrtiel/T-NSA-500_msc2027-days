@@ -416,6 +416,7 @@ Tâche 1 : Même VM mis à part qu'il ne faut pas sélectionner "Graphical Insta
 
 ---
 
+Jour 3 : Problème d'Ordinateur donc pas possible de realiser les configurations demandés a ce jour. 
 
 
 
