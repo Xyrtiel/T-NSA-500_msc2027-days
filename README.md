@@ -418,6 +418,8 @@ Tâche 1 : Même VM mis à part qu'il ne faut pas sélectionner "Graphical Insta
 
 Jour 3 : Problème d'Ordinateur donc pas possible de realiser les configurations demandés a ce jour. 
 
+Jour 4 : Problème résolu dans l'après midi pour l'Ordinateur qui avait Windows de cassé. Ainsi, pas possible de réaliser les configurations demandés à ce jour. 
+
 
 
 
